@@ -2,7 +2,7 @@
   "id": "motion-light-dimmable",
   "type": "recipe",
   "name": "Motion Light (Dimmable)",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Turns on dimmable lights when motion is detected with brightness control and time slots",
   "icon": "SunDim",
   "repo": "mchacher/sowel-recipe-motion-light-dimmable",
