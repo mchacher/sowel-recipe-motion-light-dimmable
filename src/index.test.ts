@@ -91,6 +91,9 @@ function makeInstanceHarness() {
       lightPhysicallyOn = on;
       emit("equipment.data.changed", { equipmentId: LIGHT, alias: "state", value: on ? "ON" : "OFF" });
     },
+    emitZone(aggregatedData: Record<string, unknown>) {
+      emit("zone.data.changed", { zoneId: ZONE, aggregatedData });
+    },
   };
 }
 
@@ -116,6 +119,27 @@ describe("periodic light-state re-reports (regression)", () => {
 
     // 2 minutes total since the real turn-on -> light must be OFF.
     expect(h.isLightOn()).toBe(false);
+    inst.stop();
+  });
+});
+
+describe("empty lux threshold (issue #307 regression)", () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it("an empty lux field is treated as 'no threshold', not 0, so a luminosity-reporting sensor still turns on", () => {
+    const h = makeInstanceHarness();
+    // Empty SEUIL LUX from the UI arrives as "" — Number("") is 0, which used to
+    // block any sensor reporting >0 lx (e.g. Sonoff SNZB-03PR2 at 1 lx).
+    const inst = createRecipe().createInstance(
+      { zone: ZONE, lights: [LIGHT], timeout: "2m", brightness: 100, luxThreshold: "" },
+      h.ctx,
+    );
+    expect(h.isLightOn()).toBe(false);
+
+    h.emitZone({ motion: true, luminosity: 1 });
+
+    expect(h.isLightOn()).toBe(true);
     inst.stop();
   });
 });
